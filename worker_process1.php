@@ -27,6 +27,11 @@ for ($i = 0; $i < $worker_num; $i++) {
 //进程执行函数
 function doProcess(swoole_process $process)
 {
+    //$maxsize表示获取数据的最大尺寸，默认为8192
+    //操作成功会返回提取到的数据内容，失败返回false
+    //默认模式下，如果队列中没有数据，pop方法会阻塞等待
+    //非阻塞模式下，如果队列中没有数据，pop方法会立即返回false，并设置错误码为ENOMSG
+
     $recv = $process->pop();//8192
 
     echo "从主进程获取到的数据: {$recv}";
