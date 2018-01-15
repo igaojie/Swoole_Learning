@@ -14,6 +14,14 @@ $sock_type = SWOOLE_SOCK_TCP;
 
 $server = new swoole_server($host, $port, $mode, $sock_type);
 
+
+// 如果设置了 task_worker_num 参数，那么必须监听 onTask 和 onFinish事件 否者报错。
+$server->set(array(
+    'worker_num' => 4,// worker数
+    'task_worker_num' => 4, // task worker 数
+));
+
+
 /**
  *
  * bool $server->on(string $event, mixed $callback);
@@ -29,6 +37,38 @@ $server = new swoole_server($host, $port, $mode, $sock_type);
  */
 $server->on('connect', function ($server, $fd) {
     echo "connection open: {$fd}\n";
+});
+
+
+
+$server->on('task', function ($serv, $task_id, $from_id, $data){
+    var_dump($task_id, $from_id, $data);
+});
+
+
+$server->on('finish', function ($serv, $fd, $from_id){
+	var_export($fd);
+	var_export($from_id);
+});
+
+
+$server->on('WorkerStart', function ($server, $worker_id){
+    global $argv;
+    var_export($server->setting);
+
+echo '$server->taskworker:';
+    var_dump($server->taskworker);
+
+
+    echo "\r\n #0 worker_id: {$worker_id}".PHP_EOL;
+
+    if($worker_id >= $server->setting['worker_num']) {
+    	echo "#1worker_id: ".$worker_id.PHP_EOL;
+        //swoole_set_process_name("php {$argv[0]} task worker");
+    } else {
+    	echo "#2worker_id: ".$worker_id.PHP_EOL;
+        //swoole_set_process_name("php {$argv[0]} event worker");
+    }
 });
 
 /**
